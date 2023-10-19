@@ -1,18 +1,21 @@
+import random
 import discord
 import requests
 import json
 import os
 import time
 
-def seam(message):
+async def seam(message):
     attachment = message.attachments[0]
 
+    w = random.randint(30, 115)
+    c = w + (w * 0.25)
+    
     img_data = requests.get(attachment.url).content
     with open("./convert/meme.jpg", "wb") as handler:
-        hander.write(img_data)
+        handler.write(img_data)
 
         os.system('magick ./convert/meme.jpg -liquid-rescale 70x70%\! ./convert/meme_scale.jpg')
-    await message.reply("marrant, non ?")
     await message.channel.send(file=discord.File('./convert/meme_scale.jpg'))
 
 
@@ -24,9 +27,8 @@ class MyClient(discord.Client):
     async def on_message(self, message):
         if (message.author == self.user):
             return
-        if (message.author == maxime):
-            seam(message)
-
+        if(message.attachments):
+            await seam(message)
 
 
 
