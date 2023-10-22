@@ -4,21 +4,29 @@ import requests
 import json
 import os
 import time
+from wand.image import Image
+from random_word import RandomWords
 
-async def seam(message):
-    attachment = message.attachments[0]
+def dl_image(atach):
+    img_data = requests.get(atach.url).content
+    r = RandomWords()
 
-    w = random.randint(30, 115)
-    c = w + (w * 0.25)
-    
-    img_data = requests.get(attachment.url).content
-    with open("./convert/meme.jpg", "wb") as handler:
+    word = r.get_random_word()
+    with open('./convert/' + word + '.jpg', "wb") as handler:
         handler.write(img_data)
 
-        os.system('magick ./convert/meme.jpg -liquid-rescale 70x70%\! ./convert/meme_scale.jpg')
-    await message.channel.send(file=discord.File('./convert/meme_scale.jpg'))
+    return word
 
+async def seam(message):
+    name = dl_image(message.attachments[0])
+    
+    image = Image(filename='./convert/' + name + '.jpg')
 
+    with image.clone() as liquid:
+        liquid.liquid_rescale(int(image.width*0.95), int(image.height*0.75))
+        liquid.save(filename='./convert/' + name + '_crop.jpg')
+
+    await message.channel.send(file=discord.File('./convert/' + name + '_crop.jpg'))
 
 class MyClient(discord.Client):
     async def on_ready(self):
@@ -39,10 +47,11 @@ with open('config.json') as f:
     data = json.load(f)
     token = data["token"]
 
+'''
 with open('ids.json') as f:
     data = json.load(f)
     maxime = data["maxime"]
     memeid = data["memeid"]
-
+'''
 client = MyClient(intents=intents)
 client.run(token)
